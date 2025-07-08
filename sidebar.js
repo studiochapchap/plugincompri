@@ -16,28 +16,31 @@ document.addEventListener("DOMContentLoaded", () => {
       simplifiedTextDiv.textContent = "Simplification en cours...";
   
       try {
-        const response = await fetch("https://api.mistral.ai/v1/chat/completions", {
+        const response = await fetch("https://api.openai.com/v1/chat/completions", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": "Bearer mistral-jlPDNHSCtVlfnOpzeVZdLaxSunbzwowS"
+            "Authorization": "Bearer YOUR_OPENAI_API_KEY"
           },
           body: JSON.stringify({
-            model: "mistral-large-latest", // ou mistral-small-latest
+            model: "gpt-3.5-turbo",
             messages: [
               {
-                role: "system",
-                content: "Tu es un assistant qui simplifie les textes en FALC (Facile à Lire et à Comprendre)."
+            role: "system",
+            content: "Tu es un assistant qui simplifie les textes en FALC (Facile à Lire et à Comprendre)."
               },
               {
-                role: "user",
-                content: "Simplifie ce texte en FALC : " + articleText
+            role: "user",
+            content: "Simplifie ce texte en FALC : " + articleText
               }
             ],
             temperature: 0.3,
             max_tokens: 1024
           })
         });
+
+        // Déplacer le bouton au-dessus du texte simplifié
+        simplifiedTextDiv.parentNode.insertBefore(downloadPdfBtn, simplifiedTextDiv);
       
         if (!response.ok) {
           throw new Error(`Erreur API: ${response.status} - ${await response.text()}`);
@@ -47,8 +50,7 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log(data);
       
         // Par exemple, extraire le texte simplifié :
-        const simplifiedText = data.choices[0].message.content;
-        // Utilise simplifiedText comme tu veux
+        // Utilise data.choices[0].message.content comme tu veux
       
         const simplified = data.choices?.[0]?.message?.content || "Erreur : pas de contenu renvoyé.";
   
