@@ -1,4 +1,12 @@
-document.addEventListener("DOMContentLoaded", () => {
+// Réception du texte simplifié depuis le background
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.type === "simplifiedText") {
+      const textContainer = document.getElementById("simplifiedText");
+      textContainer.innerText = message.content;
+    }
+  });
+  
+  document.addEventListener("DOMContentLoaded", () => {
     // Scroll avec les flèches du clavier
     const container = document.getElementById("container");
     if (container) {
@@ -10,7 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
   
-    // Simplification du texte
+    // Bouton de simplification
     document.getElementById("simplifyBtn").addEventListener("click", async () => {
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   
@@ -73,9 +81,18 @@ document.addEventListener("DOMContentLoaded", () => {
   
             const data = await response.json();
             const simplifiedText = data.choices?.[0]?.message?.content || "Erreur lors de la simplification.";
-            document.getElementById("simplifiedText").innerText = simplifiedText;
+  
+            // Envoi du texte simplifié à la sidebar
+            chrome.runtime.sendMessage({
+              type: "simplifiedText",
+              content: simplifiedText
+            });
+  
           } catch (error) {
-            document.getElementById("simplifiedText").innerText = "Erreur de communication avec Mistral.";
+            chrome.runtime.sendMessage({
+              type: "simplifiedText",
+              content: "Erreur de communication avec Mistral."
+            });
           }
         }
       );
@@ -85,14 +102,17 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("downloadPdfBtn").addEventListener("click", () => {
       const text = document.getElementById("simplifiedText").innerText;
       const { jsPDF } = window.jspdf;
+  
       const doc = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4'
       });
+  
       const margin = 10;
       const pageWidth = doc.internal.pageSize.getWidth() - margin * 2;
       const lines = doc.splitTextToSize(text, pageWidth);
+  
       doc.setFont("Helvetica", "normal");
       doc.setFontSize(16);
       doc.text(lines, margin, 20);
@@ -116,11 +136,8 @@ document.addEventListener("DOMContentLoaded", () => {
         await fetch("https://v1.nocodeapi.com/andreachap/google_sheets/BBLtDyGukeFuaZYK?tabId=Feuille1", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            data: [[now, url, rating]]
-          })
+          body: JSON.stringify({ data: [[now, url, rating]] })
         });
       });
     });
   });
-  
