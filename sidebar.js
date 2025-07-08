@@ -1,143 +1,77 @@
-// Réception du texte simplifié depuis le background
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.type === "simplifiedText") {
-      const textContainer = document.getElementById("simplifiedText");
-      textContainer.innerText = message.content;
-    }
-  });
+// sidebar.js
+document.addEventListener("DOMContentLoaded", () => {
+    const simplifyButton = document.getElementById("simplifyButton");
+    const downloadPdfBtn = document.getElementById("downloadPdfBtn");
+    const simplifiedTextDiv = document.getElementById("simplifiedText");
+    const stars = document.querySelectorAll("#stars .star");
+    const ratingResult = document.getElementById("rating-result");
   
-  document.addEventListener("DOMContentLoaded", () => {
-    // Scroll avec les flèches du clavier
-    const container = document.getElementById("container");
-    if (container) {
-      container.setAttribute("tabindex", "0");
-      container.focus();
-      container.addEventListener("keydown", (e) => {
-        if (e.key === "ArrowDown") container.scrollBy(0, 40);
-        if (e.key === "ArrowUp") container.scrollBy(0, -40);
-      });
-    }
+    // Cacher le bouton PDF tant qu'il n'y a pas de texte
+    downloadPdfBtn.style.display = "none";
   
-    // Bouton de simplification
-    document.getElementById("simplifyBtn").addEventListener("click", async () => {
-      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    simplifyButton.addEventListener("click", async () => {
+      // Exemple simple pour récupérer tout le texte de la page
+      const articleText = document.body.innerText;
   
-      chrome.scripting.executeScript(
-        {
-          target: { tabId: tab.id },
-          func: () => document.body.innerText
-        },
-        async (results) => {
-          const pageText = results[0].result;
-          const prompt = `
-  Tu es un expert en langage clair.
+      simplifiedTextDiv.textContent = "Simplification en cours...";
   
-  Transforme le texte suivant en version simple et accessible.
-  
-  Règles :
-  - Titres en **gras**
-  - Pas de répétitions
-  - Pas de notes de bas de page
-  - Phrases courtes
-  - Mots simples
-  - Si un mot est difficile : ajoute une définition entre parenthèses
-  - Voix active, pas de passif
-  - Pas de métaphores
-  - Pas d’abréviations ni sigles (ou explique-les)
-  - Pas de tournures négatives
-  - Chiffres écrits en chiffres
-  - Pas de pourcentages ni de grands chiffres
-  - Pas de caractères spéciaux ni de chiffres romains
-  - Ponctuation simple
-  
-  Mise en page :
-  - Texte en taille 16
-  - Police unique
-  - Une seule colonne
-  - Aligné à gauche
-  - Contraste élevé
-  - Marges larges
-  - Nouvelle phrase = nouvelle ligne
-  - Listes à puces si mots séparés par des virgules
-  - Texte structuré pour pouvoir descendre avec les flèches
-  
-  Texte à simplifier :
-  ${pageText}
-  `;
-  
-          try {
-            const response = await fetch("https://api.mistral.ai/v1/chat/completions", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "Authorization": "Bearer fL49PPfnFJtj0sq8fGie85xk7v9wZj3q"
+      try {
+        const response = await fetch("https://api.mistral.ai/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer mistral-jlPDNHSCtVlfnOpzeVZdLaxSunbzwowS"
+          },
+          body: JSON.stringify({
+            model: "mistral-large-latest", // ou mistral-small-latest
+            messages: [
+              {
+                role: "system",
+                content: "Tu es un assistant qui simplifie les textes en FALC (Facile à Lire et à Comprendre)."
               },
-              body: JSON.stringify({
-                model: "mistral-tiny",
-                messages: [{ role: "user", content: prompt }],
-                temperature: 0.7
-              })
-            });
-  
-            const data = await response.json();
-            const simplifiedText = data.choices?.[0]?.message?.content || "Erreur lors de la simplification.";
-  
-            // Envoi du texte simplifié à la sidebar
-            chrome.runtime.sendMessage({
-              type: "simplifiedText",
-              content: simplifiedText
-            });
-  
-          } catch (error) {
-            chrome.runtime.sendMessage({
-              type: "simplifiedText",
-              content: "Erreur de communication avec Mistral."
-            });
-          }
+              {
+                role: "user",
+                content: "Simplifie ce texte en FALC : " + articleText
+              }
+            ],
+            temperature: 0.3,
+            max_tokens: 1024
+          })
+        });
+      
+        if (!response.ok) {
+          throw new Error(`Erreur API: ${response.status} - ${await response.text()}`);
         }
-      );
+      
+        const data = await response.json();
+        console.log(data);
+      
+        // Par exemple, extraire le texte simplifié :
+        const simplifiedText = data.choices[0].message.content;
+        // Utilise simplifiedText comme tu veux
+      
+        const simplified = data.choices?.[0]?.message?.content || "Erreur : pas de contenu renvoyé.";
+  
+        simplifiedTextDiv.textContent = simplified;
+        downloadPdfBtn.style.display = "inline-block";
+      } catch (error) {
+        console.error("Erreur lors de la simplification:", error);
+        simplifiedTextDiv.textContent = "Erreur lors de la simplification.";
+      }
     });
   
-    // Télécharger le texte en PDF
-    document.getElementById("downloadPdfBtn").addEventListener("click", () => {
-      const text = document.getElementById("simplifiedText").innerText;
+    downloadPdfBtn.addEventListener("click", () => {
       const { jsPDF } = window.jspdf;
-  
-      const doc = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4'
-      });
-  
-      const margin = 10;
-      const pageWidth = doc.internal.pageSize.getWidth() - margin * 2;
-      const lines = doc.splitTextToSize(text, pageWidth);
-  
-      doc.setFont("Helvetica", "normal");
-      doc.setFontSize(16);
-      doc.text(lines, margin, 20);
+      const doc = new jsPDF();
+      const text = simplifiedTextDiv.textContent || "Aucun texte simplifié.";
+      doc.text(text, 10, 10);
       doc.save("texte_simplifie.pdf");
     });
   
-    // Notation par étoiles
-    document.querySelectorAll(".star").forEach((star, index) => {
-      star.addEventListener("click", async () => {
-        const rating = index + 1;
-        document.querySelectorAll(".star").forEach((s, i) => {
-          s.style.color = i < rating ? "gold" : "black";
-        });
-  
-        document.getElementById("rating-result").textContent = `Tu as mis ${rating} étoile(s). Merci !`;
-  
-        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-        const url = tab.url;
-        const now = new Date().toISOString();
-  
-        await fetch("https://v1.nocodeapi.com/andreachap/google_sheets/BBLtDyGukeFuaZYK?tabId=Feuille1", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ data: [[now, url, rating]] })
-        });
+    stars.forEach((star) => {
+      star.addEventListener("click", () => {
+        const rating = star.getAttribute("data-value");
+        ratingResult.textContent = `Merci pour votre note : ${rating} étoile(s).`;
       });
     });
   });
