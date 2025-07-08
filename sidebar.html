@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <title>Simplification</title>
   <link rel="stylesheet" href="sidebar.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
   <div class="sidebar-container">
@@ -11,7 +12,10 @@
 
     <button id="simplifyButton">Simplifier le texte</button>
 
-    <div id="simplifiedText" style="margin-top: 20px;"></div>
+    <div id="simplifiedText" style="margin-top: 20px; white-space: pre-wrap;"></div>
+
+    <button id="downloadPdfBtn" class="btn">Télécharger le texte simplifié en PDF</button>
+
 
     <div id="rating-section" style="margin-top: 30px;">
       <p><strong>Évalue la simplification :</strong></p>
