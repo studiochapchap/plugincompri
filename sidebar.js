@@ -1,16 +1,21 @@
 document.addEventListener("DOMContentLoaded", () => {
     // Bouton de simplification
     document.getElementById("simplifyBtn").addEventListener("click", async () => {
-      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  
-      chrome.scripting.executeScript(
-        {
-          target: { tabId: tab.id },
-          func: () => document.body.innerText
-        },
-        async (results) => {
-          const pageText = results[0].result;
-          const prompt = `
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+
+        chrome.scripting.executeScript(
+            {
+                target: { tabId: tab.id },
+                func: () => document.body.innerText
+            },
+            async (results) => {
+                if (!results || !results[0] || !results[0].result) {
+                    console.error("Failed to retrieve page text from the active tab.");
+                    document.getElementById("simplifiedText").innerText = "Erreur : Impossible de récupérer le texte de la page.";
+                    return;
+                }
+                const pageText = results[0].result;
+                const prompt = `
 Tu es un expert en langage clair.
 
 Tu vas transformer le texte suivant en une version simplifiée et accessible, selon les règles strictes suivantes :
@@ -46,69 +51,77 @@ Tu vas transformer le texte suivant en une version simplifiée et accessible, se
 Voici le texte à simplifier : 
 ${pageText}
 `;
-  
-          const response = await fetch("https://api.mistral.ai/v1/chat/completions", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": "Bearer fL49PPfnFJtj0sq8fGie85xk7v9wZj3q"
-            },
-            body: JSON.stringify({
-              model: "mistral-tiny",
-              messages: [{ role: "user", content: prompt }],
-              temperature: 0.7
-            })
-          });
-  
-          const data = await response.json();
-          const simplifiedText = data.choices?.[0]?.message?.content || "Erreur lors de la simplification.";
-          document.getElementById("simplifiedText").innerText = simplifiedText;
-        }
-      );
+
+                try {
+                    const response = await fetch("https://api.mistral.ai/v1/chat/completions", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": "Bearer YOUR_API_KEY_HERE" // Replace with a secure method to store your API key
+                        },
+                        body: JSON.stringify({
+                            model: "mistral-tiny",
+                            messages: [{ role: "user", content: prompt }]
+                        })
+                    });
+
+                    if (!response.ok) {
+                        console.error("API call failed with status:", response.status);
+                        document.getElementById("simplifiedText").innerText = "Erreur : La requête à l'API a échoué.";
+                        return;
+                    }
+
+                    const data = await response.json();
+                    const simplifiedText = data.choices?.[0]?.message?.content || "Erreur lors de la simplification.";
+                    document.getElementById("simplifiedText").innerText = simplifiedText;
+                } catch (error) {
+                    console.error("Error during API call:", error);
+                    document.getElementById("simplifiedText").innerText = "Erreur : Une erreur s'est produite lors de la requête.";
+                }
+            }
+        );
     });
 
     document.getElementById("downloadPdfBtn").addEventListener("click", () => {
         const text = document.getElementById("simplifiedText").innerText;
-      
+
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF({
-          orientation: 'portrait',
-          unit: 'mm',
-          format: 'a4'
+            orientation: 'portrait',
+            unit: 'mm',
+            format: 'a4'
         });
-      
+
         const margin = 10;
         const pageWidth = doc.internal.pageSize.getWidth() - margin * 2;
         const lines = doc.splitTextToSize(text, pageWidth);
-      
+
         doc.setFont("Helvetica", "normal");
         doc.setFontSize(14);
         doc.text(lines, margin, 20);
-      
+
         doc.save("texte_simplifie.pdf");
-      });
-      
-  
+    });
+
     // Étoiles d'évaluation
     document.querySelectorAll(".star").forEach((star, index) => {
-      star.addEventListener("click", async () => {
-        const rating = index + 1;
-        document.querySelectorAll(".star").forEach((s, i) => {
-          s.style.color = i < rating ? "gold" : "black";
+        star.addEventListener("click", async () => {
+            const rating = index + 1;
+            document.querySelectorAll(".star").forEach((s, i) => {
+                s.style.color = i < rating ? "gold" : "black";
+            });
+
+            document.getElementById("rating-result").textContent = `Tu as mis ${rating} étoile(s). Merci !`;
+
+            const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+            const url = tab.url;
+            const now = new Date().toISOString();
+
+            await fetch("https://v1.nocodeapi.com/andreachap/google_sheets/BBLtDyGukeFuaZYK?tabId=Feuille1", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ data: [[now, url, rating]] })
+            });
         });
-  
-        document.getElementById("rating-result").textContent = `Tu as mis ${rating} étoile(s). Merci !`;
-  
-        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-        const url = tab.url;
-        const now = new Date().toISOString();
-  
-        await fetch("https://v1.nocodeapi.com/andreachap/google_sheets/BBLtDyGukeFuaZYK?tabId=Feuille1", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ data: [[now, url, rating]] })
-        });
-      });
     });
-  });
-  
+});
