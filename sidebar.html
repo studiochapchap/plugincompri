@@ -1,31 +1,31 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <link rel="stylesheet" href="sidebar.css">
-  <title>Langage clair</title>
+  <meta charset="UTF-8" />
+  <title>Simplification</title>
+  <link rel="stylesheet" href="sidebar.css" />
 </head>
 <body>
-    <div class="sidebar-container">
-      <h2>Simplification du texte</h2>
-      <button id="simplifyButton">Simplifier la page</button>
-      <div id="simplifiedText" style="margin-top: 20px;"></div>
-    </div>
-  
-  <h1><strong>Langage clair</strong></h1>
-  <button id="simplify">Simplifier le texte</button>
+  <div class="sidebar-container">
+    <h2>Simplification</h2>
 
-  <div>
-    <p><strong>Évaluer la simplification :</strong></p>
-    <div class="star-rating" id="rating">
-      <span class="star" data-value="1">★</span>
-      <span class="star" data-value="2">★</span>
-      <span class="star" data-value="3">★</span>
-      <span class="star" data-value="4">★</span>
-      <span class="star" data-value="5">★</span>
+    <button id="simplifyButton">Simplifier le texte</button>
+
+    <div id="simplifiedText" style="margin-top: 20px;"></div>
+
+    <div id="rating-section" style="margin-top: 30px;">
+      <p><strong>Évalue la simplification :</strong></p>
+      <div id="stars">
+        <span class="star" data-value="1">★</span>
+        <span class="star" data-value="2">★</span>
+        <span class="star" data-value="3">★</span>
+        <span class="star" data-value="4">★</span>
+        <span class="star" data-value="5">★</span>
+      </div>
+      <p id="rating-result" style="margin-top: 10px;"></p>
     </div>
+
+    <script src="sidebar.js"></script>
   </div>
-
-  <script src="sidebar.js"></script>
 </body>
 </html>
