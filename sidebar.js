@@ -6,8 +6,13 @@ document.getElementById("simplify").onclick = () => {
     alert("Merci. Nous avons bien reçu votre message.");
   };
   
-  document.getElementById("stars").onclick = (e) => {
-    const rating = [...e.target.parentNode.textContent].indexOf(e.target.textContent) + 1;
-    alert("Merci. Vous avez mis " + rating + " étoile(s).");
-  };
-  
+  document.getElementById('rating').addEventListener('click', (event) => {
+    if (event.target.classList.contains('star')) {
+      const value = parseInt(event.target.dataset.value);
+      document.querySelectorAll('.star').forEach((star, index) => {
+        star.classList.toggle('selected', index < value);
+      });
+      alert(`Merci ! Vous avez noté ${value} étoile(s).`);
+      // Tu peux remplacer alert() par une requête à une API ou stockage local
+    }
+  });

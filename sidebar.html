@@ -6,26 +6,20 @@
   <title>Langage clair</title>
 </head>
 <body>
-  <div id="sidebar">
-    <h1><strong>Langage clair</strong></h1>
-    <button id="simplify">Simplifier le texte</button>
+  <h1><strong>Langage clair</strong></h1>
+  <button id="simplify">Simplifier le texte</button>
+
+  <div>
+    <p><strong>Évaluer la simplification :</strong></p>
+    <div class="star-rating" id="rating">
+      <span class="star" data-value="1">★</span>
+      <span class="star" data-value="2">★</span>
+      <span class="star" data-value="3">★</span>
+      <span class="star" data-value="4">★</span>
+      <span class="star" data-value="5">★</span>
+    </div>
   </div>
+
   <script src="sidebar.js"></script>
 </body>
 </html>
-<div id="rating">
-  <h2>Évaluez la simplification :</h2>
-  <span class="star" data-value="1">★</span>
-  <span class="star" data-value="2">★</span>
-  <span class="star" data-value="3">★</span>
-  <span class="star" data-value="4">★</span>
-  <span class="star" data-value="5">★</span>
-</div>
-<script>
-  document.querySelectorAll('.star').forEach(star => {
-    star.addEventListener('click', function() {
-      const rating = this.getAttribute('data-value');
-      alert(`Merci pour votre évaluation de la simplification : ${rating} étoile(s) !`);
-    });
-  });
-</script>

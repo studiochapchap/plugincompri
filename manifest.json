@@ -1,22 +1,36 @@
 {
     "manifest_version": 3,
-    "name": "Langage Clair",
+    "name": "Claris - Simplification en langage clair",
+    "description": "Un outil pour simplifier les textes selon les règles du langage clair.",
     "version": "1.0",
-    "description": "Plugin pour simplifier le texte des pages web.",
-    "permissions": ["scripting", "activeTab"],
-    "background": {
-      "service_worker": "background.js"
+    "icons": {
+      "16": "icons/icon.png",
+      "48": "icons/icon.png",
+      "128": "icons/icon.png"
     },
     "action": {
-      "default_popup": "sidebar.html",
       "default_icon": {
         "16": "icons/icon.png"
       }
     },
+    "background": {
+      "service_worker": "background.js"
+    },
     "content_scripts": [
       {
         "matches": ["<all_urls>"],
-        "js": ["content.js"]
+        "js": ["content.js"],
+        "run_at": "document_idle"
       }
+    ],
+    "web_accessible_resources": [
+      {
+        "resources": ["sidebar.html", "sidebar.css", "sidebar.js", "icons/icon.png"],
+        "matches": ["<all_urls>"]
+      }
+    ],
+    "permissions": [
+      "scripting",
+      "activeTab"
     ]
   }
