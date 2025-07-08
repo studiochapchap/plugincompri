@@ -1,0 +1,30 @@
+{
+    "manifest_version": 3,
+    "name": "Compri - Plugin de simplification",
+    "description": "Cette extension simplifie les textes d'une page web pour les rendre plus accessibles.",
+    "version": "1.0",
+  
+    "permissions": ["scripting", "activeTab"],
+  
+    "action": {
+      "default_title": "Langage Clair",
+      "default_popup": "sidebar.html"
+    },
+  
+    "background": {
+      "service_worker": "background.js"
+    },
+  
+    "content_scripts": [
+      {
+        "matches": ["<all_urls>"],
+        "js": ["content.js"]
+      }
+    ],
+  
+    "icons": {
+      "16": "icons/icon.png",
+      "48": "icons/icon.png",
+      "128": "icons/icon.png"
+    }
+  }
