@@ -1,35 +1,11 @@
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.action === "simplify") {
-      const elements = document.querySelectorAll("p, li, h1, h2, h3");
-  
-      elements.forEach(el => {
-        // Mise en forme visuelle
-        el.style.fontSize = "16px";
-        el.style.lineHeight = "2";
-        el.style.fontFamily = "Arial, sans-serif";
-        el.style.color = "black";
-        el.style.backgroundColor = "white";
-        el.style.textAlign = "left";
-        el.style.margin = "10px 0";
-        el.style.padding = "8px";
-        el.style.borderRadius = "5px";
-  
-        // Forçage retour à la ligne entre chaque phrase
-        const sentences = el.textContent.split(/(?<=\.)\s+/);
-        el.innerHTML = sentences.map(s => `<div>${s}</div>`).join("");
-      });
-  
-      // Corps de page : marges larges et page aérée
-      document.body.style.margin = "40px";
-      document.body.style.padding = "0";
-      document.body.style.backgroundColor = "#fefefe";
-      document.body.style.fontSize = "16px";
-      document.body.style.fontFamily = "Arial, sans-serif";
-      document.body.style.lineHeight = "2";
-      document.body.style.color = "black";
-  
-      // Empêche le contenu trop dense
-      document.body.style.maxWidth = "800px";
-    }
-  });
-  
+const sidebar = document.createElement('iframe');
+sidebar.src = chrome.runtime.getURL('sidebar.html');
+sidebar.style.position = 'fixed';
+sidebar.style.top = '0';
+sidebar.style.right = '0';
+sidebar.style.width = '300px';
+sidebar.style.height = '100vh';
+sidebar.style.border = 'none';
+sidebar.style.zIndex = '9999';
+sidebar.style.boxShadow = '-2px 0 5px rgba(0, 0, 0, 0.2)';
+document.body.appendChild(sidebar);
